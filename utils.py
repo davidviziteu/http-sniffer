@@ -1,9 +1,6 @@
 import ipaddress
 import struct
 
-IPV4_FRAME = 0x0800
-IPV6_FRAME = 0x86dd
-
 
 def tabs(n):
     return '\t' * n
@@ -29,6 +26,14 @@ def unpack_ipv4_frame(data):
     src_ipv4 = str(ipaddress.ip_address(src_ipv4))
     dest_ipv4 = str(ipaddress.ip_address(dest_ipv4))
     return protocol, src_ipv4, dest_ipv4, data[header_length:]
+
+
+def unpack_ipv6_frame(data):
+    # unable to test at the moment
+    ipv6_first_word, ipv6_payload_legth, ipv6_next_header, ipv6_hoplimit = struct.unpack("! I H B B", data[0:8])
+    src_ipv6 = str(ipaddress.ip_address(data[8:24]))
+    dest_ipv6 = str(ipaddress.ip_address(data[24:40]))
+    return ipv6_next_header, src_ipv6, dest_ipv6, data[40:]
 
 
 def unpack_tcp_frame(data):

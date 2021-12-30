@@ -10,10 +10,13 @@ def main():
         dest_mac, src_mac, frame_type, eth_payload = unpack_ethernet_frame(raw_eth_frame)
         physical_device = other_data[0]
 
-        if frame_type != ethernet_frame_types.IPV4:
-            continue
-        protocol, src_ipv4, dest_ipv4, ipv4_payload = unpack_ipv4_frame(eth_payload)
-        if protocol != protocol_types.TCP:
+        if frame_type == ethernet_frame_types.IPV4:
+            protocol, src_ip, dest_ip, ipv4_payload = unpack_ipv4_frame(eth_payload)
+            frame_type = 'IPV4'
+        elif frame_type == ethernet_frame_types.IPV6:
+            protocol, src_ip, dest_ip, ipv4_payload = unpack_ipv6_frame(eth_payload)
+            frame_type = 'IPV6'
+        else:
             continue
 
         src_port, dest_port, sequence, acknowledgment, tpc_payload = unpack_tcp_frame(ipv4_payload)
