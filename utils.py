@@ -1,5 +1,6 @@
 import ipaddress
 import struct
+import ethernet_frame_types
 
 
 def tabs(n):
@@ -14,14 +15,18 @@ def get_readable_mac(bytes_mac):
 
 def unpack_ethernet_frame(ethernet_frame):
     """
-    Extracts from an ethernet frame's header the source mac, destination mac and frame type (ipv4 or ipv6).
-    Returns the frame type, the human readable version of the mac addresses and the payload.
+    Extracts from an ethernet frame's header the source mac, destination mac and ip version (ipv4 or ipv6).
+    Returns the human readable version of the mac addresses, the ip version and the payload.
     """
     macs_and_proto = ethernet_frame[:14]
-    dest_mac, source_mac, frame_type = struct.unpack('! 6s 6s H', macs_and_proto)
+    dest_mac, source_mac, ip_version = struct.unpack('! 6s 6s H', macs_and_proto)
     dest_mac = get_readable_mac(dest_mac)
     source_mac = get_readable_mac(source_mac)
-    return dest_mac, source_mac, frame_type, ethernet_frame[14:]
+    if ip_version == ethernet_frame_types.IPV4:
+        ip_version = 4
+    elif ip_version == ethernet_frame_types.IPV6:
+        ip_version = 6
+    return dest_mac, source_mac, ip_version, ethernet_frame[14:]
 
 
 def unpack_ipv4_frame(data):
