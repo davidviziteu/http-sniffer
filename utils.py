@@ -52,7 +52,7 @@ def unpack_ipv6_frame(data):
     Note: I was unable to test this function at the moment of writing. I will delete this message when I will be able
     to test and to confirm that it is working properly.
     """
-    ipv6_first_word, ipv6_payload_legth, ipv6_next_header, ipv6_hoplimit = struct.unpack("! I H B B", data[0:8])
+    ipv6_first_word, ipv6_payload_length, ipv6_next_header, ipv6_hoplimit = struct.unpack("! I H B B", data[0:8])
     src_ipv6 = str(ipaddress.ip_address(data[8:24]))
     dest_ipv6 = str(ipaddress.ip_address(data[24:40]))
     return ipv6_next_header, src_ipv6, dest_ipv6, data[40:]
