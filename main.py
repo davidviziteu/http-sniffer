@@ -10,13 +10,13 @@ except ImportError:
 
 
 def print_headers(n_tabs, headers):
-    """nicely prints headers from HttpParser instance with the given tabs"""
+    """nicely prints headers from HttpParser instance with the given tabs."""
     for key, value in headers.items():
         print(tabs(n_tabs) + f'{key}: {value}')
 
 
 def check_filters(filters, device, src_mac, src_ip, dest_mac, dest_ip, http_data: HttpParser):
-    """checks whether or not the given tcp packet is subject to the applied filters or not"""
+    """checks whether or not the given tcp packet is subject to the applied filters or not."""
     if filters.filter_from_ip and src_ip not in filters.filter_from_ip:
         return False
     if filters.filter_to_ip and dest_ip not in filters.filter_to_ip:

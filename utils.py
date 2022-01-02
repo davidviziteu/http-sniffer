@@ -4,12 +4,12 @@ import ethernet_frame_types
 
 
 def tabs(n):
-    r"""Returns the tab (\t) character multiplied by n"""
+    r"""Returns the tab (\t) character multiplied by n."""
     return '\t' * n
 
 
 def get_readable_mac(bytes_mac):
-    """Returns the human-readable version of a mac address represented in bytes"""
+    """Returns the human-readable version of a mac address represented in bytes."""
     return bytes_mac.hex(':')
 
 
