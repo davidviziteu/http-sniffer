@@ -47,30 +47,24 @@ def main(filters):
             continue
 
         src_port, dest_port, sequence, tcp_payload = unpack_tcp_frame(ipvX_payload)
-        if dest_port != 80:
+        if dest_port != 80 and src_port != 80:
             continue
-        try:
-            decoded_tcp_payload = tcp_payload.decode("utf8")
-        except UnicodeDecodeError:
-            print('Unable to decode tcp payload as it contains non utf8 characters')
-            continue
-        if 'HTTP' not in decoded_tcp_payload:
-            continue
+
         httpParser = HttpParser()
         payload_len = len(tcp_payload)
         parsed_len = httpParser.execute(tcp_payload, payload_len)
 
         if len(tcp_payload) != parsed_len:
-            print(f'tcp payload http parsing failed. parsed len = {parsed_len} payload len = {payload_len}')
-            continue
+            parsed_len = None
 
         if not check_filters(filters, physical_device, src_mac, src_ip, dest_mac, dest_ip, httpParser):
             continue
 
+        http_raw_body = httpParser.recv_body()
         try:
-            decoded_http_req_body = httpParser.recv_body().decode("utf8")
+            decoded_http_req_body = http_raw_body.decode("utf8")
         except UnicodeDecodeError:
-            decoded_http_req_body = 'Unable to decode http body as it contains non utf8 characters'
+            decoded_http_req_body = 'Body contains non-utf8 characters. Raw body: ' + str(http_raw_body)
 
         print(tabs(0) + f'ETHERNET FRAME - device: {physical_device}')
         print(tabs(1) + f'ip version: {ip_version}')
@@ -79,11 +73,14 @@ def main(filters):
         print(tabs(2) + f'dst: {dest_mac} - {dest_ip} : {dest_port}')
         print(tabs(2) + f'sequence: {sequence}')
         print(tabs(2) + f'tcp payload:')
-        print(tabs(3) + f'method: {httpParser.get_method()}')
-        print(tabs(3) + f'headers:')
-        print_headers(4, httpParser.get_headers())
-        if httpParser.get_method() != 'GET' and httpParser.get_method() != 'HEAD':
-            print(tabs(3) + f'body: {decoded_http_req_body}')
+        if parsed_len is not None:
+            print(tabs(3) + f'method: {httpParser.get_method()}')
+            print(tabs(3) + f'headers:')
+            print_headers(4, httpParser.get_headers())
+            if httpParser.get_method() != 'GET' and httpParser.get_method() != 'HEAD':
+                print(tabs(3) + f'body: {decoded_http_req_body}')
+        else:
+            print(tabs(3) + str(tcp_payload))
         print()
 
 
