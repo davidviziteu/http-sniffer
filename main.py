@@ -27,8 +27,9 @@ def check_filters(filters, device, src_mac, src_ip, dest_mac, dest_ip, http_data
         return False
     if filters.filter_to_mac and dest_mac not in filters.filter_to_mac:
         return False
-    if filters.filter_http_verb and http_data.get_method() not in filters.filter_http_verb:
-        return False
+    if http_data:
+        if filters.filter_http_verb and http_data.get_method() not in filters.filter_http_verb:
+            return False
     if filters.filter_device and device not in filters.filter_device:
         return False
     return True
@@ -52,34 +53,37 @@ def main(filters):
         if dest_port != 80 and src_port != 80:
             continue
 
-        httpParser = HttpParser()
-        payload_len = len(tcp_payload)
-        parsed_len = httpParser.execute(tcp_payload, payload_len)
-
-        if len(tcp_payload) != parsed_len:
+        if filters.show_raw_tcp_payload:
+            httpParser = None
             parsed_len = None
+        else:
+            httpParser = HttpParser()
+            payload_len = len(tcp_payload)
+            parsed_len = httpParser.execute(tcp_payload, payload_len)
+
+            if len(tcp_payload) != parsed_len:
+                parsed_len = None
+                httpParser = None
 
         if not check_filters(filters, physical_device, src_mac, src_ip, dest_mac, dest_ip, httpParser):
             continue
-
-        http_raw_body = httpParser.recv_body()
-        try:
-            decoded_http_req_body = http_raw_body.decode("utf8")
-        except UnicodeDecodeError:
-            decoded_http_req_body = 'Body contains non-utf8 characters. Raw body: ' + str(http_raw_body)
 
         print(tabs(0) + f'ETHERNET FRAME - device: {physical_device}')
         print(tabs(1) + f'ip version: {ip_version}')
         print(tabs(1) + f'TCP FRAME:')
         print(tabs(2) + f'src: {src_mac} - {src_ip} : {src_port}')
         print(tabs(2) + f'dst: {dest_mac} - {dest_ip} : {dest_port}')
-        # print(tabs(2) + f'sequence: {sequence}')
         print(tabs(2) + f'tcp payload:')
         if parsed_len is not None:
             print(tabs(3) + f'http verb: {httpParser.get_method()}')
             print(tabs(3) + f'headers:')
             print_headers(4, httpParser.get_headers())
             if httpParser.get_method() != 'GET' and httpParser.get_method() != 'HEAD':
+                http_raw_body = httpParser.recv_body()
+                try:
+                    decoded_http_req_body = http_raw_body.decode("utf8")
+                except UnicodeDecodeError:
+                    decoded_http_req_body = 'Body contains non-utf8 characters. Raw body: ' + str(http_raw_body)
                 print(tabs(3) + f'body: {decoded_http_req_body}')
         else:
             print(tabs(3) + str(tcp_payload))
@@ -109,6 +113,9 @@ if __name__ == '__main__':
     parser.add_argument('--ip-related', type=str, dest='ip_related',
                         help='filter only http requests related to ip address',
                         action='append')
+    parser.add_argument('--raw-tcp-payload', dest='show_raw_tcp_payload',
+                        help='filter only http requests related to ip address',
+                        action='store_true')
 
     args = parser.parse_args()
     main(args)
