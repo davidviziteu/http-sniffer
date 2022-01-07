@@ -1,5 +1,4 @@
 http-parser/
-runhttpsniffer.bash
 .idea
 # Byte-compiled / optimized / DLL files
 __pycache__/

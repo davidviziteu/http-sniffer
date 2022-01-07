@@ -17,6 +17,8 @@ def print_headers(n_tabs, headers):
 
 def check_filters(filters, device, src_mac, src_ip, dest_mac, dest_ip, http_data: HttpParser):
     """checks whether or not the given tcp packet is subject to the applied filters or not."""
+    if filters.ip_related and src_ip not in filters.ip_related and dest_ip not in filters.ip_related:
+        return False
     if filters.filter_from_ip and src_ip not in filters.filter_from_ip:
         return False
     if filters.filter_to_ip and dest_ip not in filters.filter_to_ip:
@@ -71,10 +73,10 @@ def main(filters):
         print(tabs(1) + f'TCP FRAME:')
         print(tabs(2) + f'src: {src_mac} - {src_ip} : {src_port}')
         print(tabs(2) + f'dst: {dest_mac} - {dest_ip} : {dest_port}')
-        print(tabs(2) + f'sequence: {sequence}')
+        # print(tabs(2) + f'sequence: {sequence}')
         print(tabs(2) + f'tcp payload:')
         if parsed_len is not None:
-            print(tabs(3) + f'method: {httpParser.get_method()}')
+            print(tabs(3) + f'http verb: {httpParser.get_method()}')
             print(tabs(3) + f'headers:')
             print_headers(4, httpParser.get_headers())
             if httpParser.get_method() != 'GET' and httpParser.get_method() != 'HEAD':
@@ -104,5 +106,9 @@ if __name__ == '__main__':
                         action='append')
     parser.add_argument('--http-verb', type=str, dest='filter_http_verb',
                         help='filter only http that have the respective verb', action='append')
+    parser.add_argument('--ip-related', type=str, dest='ip_related',
+                        help='filter only http requests related to ip address',
+                        action='append')
+
     args = parser.parse_args()
     main(args)
