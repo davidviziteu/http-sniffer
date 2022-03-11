@@ -1,3 +1,5 @@
 # http-sniffer python project
 
-displays and filters the http packets coming to/from a ubuntu machine
+displays the http packets coming to/from a ubuntu machine
+
+some filtering is available
